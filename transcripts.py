@@ -1,9 +1,8 @@
 #!/bin/env python3
+# To Manually convert an audio file to mono:
+# docker run -v $(pwd):$(pwd) -w $(pwd) jrottenberg/ffmpeg:4.4-alpine -i input.mp4 -ar 16000 -ac 1 -c:a pcm_s16le ./mono_audio.wav
+# docker run -v $(pwd):$(pwd) -w $(pwd) jrottenberg/ffmpeg:4.4-alpine -i input.mp4 -ar 16000 ./output.mp3
 # python transcripts.py --num_speakers 2 --language English --model_size medium
-
-# Ignore deprecated warnings
-import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import argparse
 import shutil
@@ -23,13 +22,7 @@ from pydub import AudioSegment
 import os
 import time
 
-
 audio_processor = Audio()
-
-import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-# Then, use logging.debug(), logging.info(), logging.warning(), etc., to log messages.
-logging.debug('This message will help diagnose the issue.')
 
 # Argument parsing
 print("Setting up argument parser...")
@@ -60,9 +53,12 @@ for filename in os.listdir('.'):
         path = filename
         print(f"Found MP3 file: {filename}")
         break
-
-if not path:
-    raise Exception("No MP3 file found in the current directory.")
+    elif filename.endswith('.wav'):
+        path = filename
+        print(f"Found WAV file: {filename}")
+        break
+    else:
+        print(f"Found file: {filename}")
 
 # Track the original filename
 original_path = path
@@ -132,9 +128,9 @@ print("Writing transcript to file...")
 f = open("transcript.txt", "w")
 
 for (i, segment) in enumerate(segments):
-    formatted_time = time.strftime("%H:%M:%S", time.gmtime(segment["start"]))
+    segment_time = time.strftime("%H:%M:%S", time.gmtime(segment["start"]))
     if i == 0 or segments[i - 1]["speaker"] != segment["speaker"]:
-        f.write("\n" + segment["speaker"] + ' ' + str(formatted_time(segment["start"])) + '\n')
+        f.write("\n" + segment["speaker"] + ' ' + segment_time + '\n')
     f.write(segment["text"][1:] + ' ')
 f.close()
 
@@ -145,8 +141,10 @@ if not os.path.exists(destination_pt_file) and os.path.exists(whisper_model_cach
 # Clean up
 if path != original_path:
     print("Cleaning up temporary files...")
-    os.remove('mono_audio.wav')  # Remove the temporary mono audio file
-    os.rename(original_path, original_path + '.complete')  # Rename the original file with a ".complete" extension
+    # If mono_audio.wav exist remove it
+    if os.path.exists('mono_audio.wav'):
+        os.remove('mono_audio.wav')
+    os.rename(original_path, original_path + '.complete')
 
 # Print the transcript
 print("Transcription complete. Here's the transcript:")

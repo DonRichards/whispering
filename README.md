@@ -62,8 +62,9 @@ The bigger the more accurate.
 - base
 - small
 - medium
-- large
-
+- large (3.09G)
+- large-v1
+- large-v2 
 
 ## TODO
 - [] Get Dockerfile working
