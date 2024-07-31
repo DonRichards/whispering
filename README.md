@@ -1,4 +1,4 @@
-# Whispering
+# Whispering (draft)
 This repository contains a Python script designed for transcribing multi-speaker audio files. It leverages advanced machine learning models and audio processing techniques to accurately identify and transcribe speech from multiple speakers in an audio file.
 
 ```
